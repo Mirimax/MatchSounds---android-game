@@ -2,39 +2,47 @@ package com.mygdx.pianogame.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.mygdx.pianogame.GameClass;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.GL20;
 
 public class LoadingScreen implements Screen {
     private final GameClass app;
     private ShapeRenderer shapeRenderer;
-    private float progress;
+    private GlyphLayout loadingText;
+
     public LoadingScreen(final GameClass app){
         this.app = app;
-        this.shapeRenderer = new ShapeRenderer();
-        this.progress = 0f;
-
-        loadingAssets();
+        shapeRenderer = new ShapeRenderer();
     }
+
     @Override
     public void show() {
-
+        loadingAssets();
+        loadingText = new GlyphLayout(app.fontBig,"Loading...");
     }
 
     private void update(float delta){
         if(app.assetManager.update()){
-            app.setScreen(new Menu(app));
+            app.setScreen(app.menu);
         }
     }
+
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(1f,1f,1f,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         update(delta);
+
+
+        //Printing loading... text
+        app.batch.begin();
+        app.fontBig.draw(app.batch,loadingText,Gdx.graphics.getWidth()/2 - loadingText.width/2,Gdx.graphics.getHeight()/5);
+        app.batch.end();
     }
 
     @Override
@@ -64,8 +72,8 @@ public class LoadingScreen implements Screen {
 
     //loading all assets at launch
     private void loadingAssets(){
-        app.assetManager.load("img/buttons/play.png", Texture.class);
-        app.assetManager.load("img/buttons/option1.png", Texture.class);
-        for(int i = 0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
+        for(int i =
+            +0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
+        app.assetManager.load("ui/uiskin.atlas", TextureAtlas.class);
     }
 }
