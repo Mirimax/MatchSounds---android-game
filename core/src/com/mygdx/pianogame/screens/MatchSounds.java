@@ -105,7 +105,7 @@ public class MatchSounds implements Screen {
     }
 
     private void initNavButtons(){
-        TextButton playButton = new TextButton("play actual\n sequence", app.skin, "default");
+        final TextButton playButton = new TextButton("play actual\n sequence", app.skin, "default");
         playButton.setSize(400,150);
         playButton.setName("playButton");
         playButton.setPosition(100,stage.getHeight()/2- playButton.getHeight()/2);
@@ -166,7 +166,7 @@ public class MatchSounds implements Screen {
             final int finalI = i;
             float tempX = stage.getWidth()/2-(int)(tiles.length/2f)*(tempWidth+25) + i*tempWidth + i*25;
             if(tiles.length%2 == 1) tempX -= tempWidth/2f;
-            tiles[i] = new PianoTile("",app.skin,"default",sequence[i],tempX,stage.getHeight()/2-85,tempWidth,tempHeight);
+            tiles[i] = new PianoTile(Integer.toString(i+1),app.skin,"default",sequence[i],tempX,stage.getHeight()/2-85,tempWidth,tempHeight);
             tiles[i].setName("tile" + i);
             tiles[i].addListener(new InputListener(){
                 @Override
@@ -184,18 +184,29 @@ public class MatchSounds implements Screen {
 
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                    for (int i = 0; i < tiles.length; i++) {
-                        for (int j = 0; j < answerTiles.length; j++) {
-                            if(tiles[i].rectangle.overlaps(answerTiles[j].rectangle) &&  answerTiles[j].isFree){
-                                tiles[finalI].setPosition(answerTiles[j].overlappingTileX,answerTiles[j].overlappingTileY);
-                                answerTiles[j].isFree = false;
-                                tiles[finalI].occupiedAnswerTile = j;
-                                return;
+                    for (int j = 0; j < answerTiles.length; j++) {
+                        if (tiles[finalI].rectangle.overlaps(answerTiles[j].rectangle)) {
+                            if(tiles[finalI].occupiedAnswerTile != -1) {
+                                answerTiles[tiles[finalI].occupiedAnswerTile].isFree = true;
+                                tiles[finalI].occupiedAnswerTile = -1;
                             }
+                            if (!answerTiles[j].isFree) {
+                                int temp = answerTiles[j].occupiedPianoTile;
+                                tiles[temp].setPosition(tiles[temp].originX, tiles[temp].originY);
+                                tiles[temp].occupiedAnswerTile = -1;
+                            }
+                            tiles[finalI].setPosition(answerTiles[j].overlappingTileX, answerTiles[j].overlappingTileY);
+                            answerTiles[j].isFree = false;
+                            answerTiles[j].occupiedPianoTile = finalI;
+                            tiles[finalI].occupiedAnswerTile = j;
+                            return;
                         }
                     }
                     tiles[finalI].setPosition(tiles[finalI].originX,tiles[finalI].originY);
-                    answerTiles[tiles[finalI].occupiedAnswerTile].isFree = true;
+                    if(tiles[finalI].occupiedAnswerTile != -1){
+                        answerTiles[tiles[finalI].occupiedAnswerTile].isFree = true;
+                        tiles[finalI].occupiedAnswerTile = -1;
+                    }
                 }
             });
             stage.addActor(tiles[i]);
