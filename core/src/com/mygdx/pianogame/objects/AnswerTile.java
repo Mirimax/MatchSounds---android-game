@@ -15,5 +15,6 @@ public class AnswerTile extends Tile {
         setColor(0.8f, 0.8f, 0.8f, 1);
         getLabel().setAlignment(Align.top);
         isFree = true;
+        occupiedPianoTile = -1;
     }
 }
