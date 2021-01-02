@@ -5,7 +5,12 @@
     black: { a: 1, b: 0, g: 0, r: 0 },
   },
   com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
-    default: { down: default-round-down, up: default-round, font: default-font, fontColor: white },
+    default: { down: default-round, up: default-scroll, font: default-font, fontColor: white },
     toggle: { down: default-round-down, up: default-round, checked: default-round-down, font: default-font, fontColor: white, downFontColor: red },
+    mine: { up: default-round, checked: default-round-down, font: default-font, fontColor: white },
   },
+  com.badlogic.gdx.scenes.scene2d.ui.Slider$SliderStyle: {
+    default-horizontal: { background: default-slider, knob: default-slider-knob },
+    default-vertical: { background: default-slider, knob: default-round-large }
+  }
 }

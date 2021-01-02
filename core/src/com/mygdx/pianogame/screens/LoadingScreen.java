@@ -2,6 +2,7 @@ package com.mygdx.pianogame.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -13,7 +14,9 @@ public class LoadingScreen implements Screen {
     private final GameClass app;
     private ShapeRenderer shapeRenderer;
     private GlyphLayout loadingText;
-
+    private int timer;
+    private int cnt;
+    private String text;
     public LoadingScreen(final GameClass app){
         this.app = app;
         shapeRenderer = new ShapeRenderer();
@@ -23,6 +26,8 @@ public class LoadingScreen implements Screen {
     public void show() {
         loadingAssets();
         loadingText = new GlyphLayout(app.fontBig,"Loading...");
+        timer=0;
+        cnt = 1;
     }
 
     private void update(float delta){
@@ -36,13 +41,21 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClearColor(1f,1f,1f,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        update(delta);
-
-
-        //Printing loading... text
+        //Printing text
+        timer++;
+        if(timer > 20){
+            timer = 0;
+            cnt++;
+            if(cnt == 4) cnt = 1;
+        }
+        text = "Loading";
+        for(int i=0; i<cnt; i++) text += ".";
+        loadingText.setText(app.fontBig,text);
         app.batch.begin();
-        app.fontBig.draw(app.batch,loadingText,Gdx.graphics.getWidth()/2 - loadingText.width/2,Gdx.graphics.getHeight()/5);
+        app.fontBig.draw(app.batch,loadingText,Gdx.graphics.getWidth()/2f - loadingText.width/2,Gdx.graphics.getHeight()/5f);
         app.batch.end();
+
+        update(delta);
     }
 
     @Override
@@ -72,8 +85,8 @@ public class LoadingScreen implements Screen {
 
     //loading all assets at launch
     private void loadingAssets(){
-        for(int i =
-            +0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
+        for(int i = +0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
         app.assetManager.load("ui/uiskin.atlas", TextureAtlas.class);
+        app.assetManager.load("img/note.png", Texture.class);
     }
 }

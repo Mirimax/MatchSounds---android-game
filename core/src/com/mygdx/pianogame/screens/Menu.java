@@ -2,7 +2,6 @@ package com.mygdx.pianogame.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -17,9 +16,8 @@ public class Menu implements Screen {
     private final GameClass app;
     private Stage stage;
 
-    private TextButton.TextButtonStyle textButtonStyle;
-
     private GlyphLayout mathSoundText;
+    private GlyphLayout additionalInfoText;
 
     public Menu(final GameClass app){
         this.app = app;
@@ -33,7 +31,7 @@ public class Menu implements Screen {
 
         //Text of the title of the game
         mathSoundText = new GlyphLayout(app.fontBig,"Match sounds");
-
+        additionalInfoText = new GlyphLayout(app.fontBlack,"Best survival score: " + Gdx.app.getPreferences("Prefs").getInteger("survivalBest"));
         initButtons();
     }
 
@@ -42,9 +40,10 @@ public class Menu implements Screen {
         Gdx.gl.glClearColor(1f,1f,1f,1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //Displaying the title of game
+        //Displaying text
         app.batch.begin();
-        app.fontBig.draw(app.batch,mathSoundText,Gdx.graphics.getWidth()/2f - mathSoundText.width/2,Gdx.graphics.getHeight()- 100 - mathSoundText.height);
+        app.fontBig.draw(app.batch,mathSoundText,stage.getWidth()/2f - mathSoundText.width/2,stage.getHeight()- 100 - mathSoundText.height);
+        app.fontBlack.draw(app.batch,additionalInfoText,stage.getWidth() - additionalInfoText.width - 50,stage.getHeight()- 100 - additionalInfoText.height);
         app.batch.end();
 
         update(delta);
@@ -65,6 +64,7 @@ public class Menu implements Screen {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 app.gamemode = GameClass.GAMEMODE.SURVIVAL;
+                Gdx.app.log("Info","Actual record: " + app.prefs.getInteger("survivalBest"));
                 ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.matchSounds);
             }
         });
@@ -82,7 +82,7 @@ public class Menu implements Screen {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 app.gamemode = GameClass.GAMEMODE.CUSTOM;
-                ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.matchSounds);
+                ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.customMode);
             }
         });
         stage.addActor(customMode);
