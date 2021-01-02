@@ -31,7 +31,7 @@ public class Menu implements Screen {
         stage.clear();
         Gdx.input.setInputProcessor(stage);
 
-        //Text of the title of game
+        //Text of the title of the game
         mathSoundText = new GlyphLayout(app.fontBig,"Match sounds");
 
         initButtons();
@@ -51,15 +51,6 @@ public class Menu implements Screen {
         stage.draw();
     }
 
-    private void update(float delta) {
-        stage.act(delta);
-    }
-
-    @Override
-    public void resize(int width, int height) {
-
-    }
-
     private void initButtons(){
         //Option nr.1 - Survival mode
         TextButton survivalMode = new TextButton("Survival", app.skin);
@@ -73,6 +64,7 @@ public class Menu implements Screen {
             }
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                app.gamemode = GameClass.GAMEMODE.SURVIVAL;
                 ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.matchSounds);
             }
         });
@@ -89,6 +81,7 @@ public class Menu implements Screen {
             }
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                app.gamemode = GameClass.GAMEMODE.CUSTOM;
                 ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.matchSounds);
             }
         });
@@ -109,6 +102,15 @@ public class Menu implements Screen {
             }
         });
         stage.addActor(exit);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    private void update(float delta) {
+        stage.act(delta);
     }
 
     @Override

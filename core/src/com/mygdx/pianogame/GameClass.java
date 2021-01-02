@@ -19,15 +19,17 @@ import com.mygdx.pianogame.screens.Menu;
 public class GameClass extends Game {
 	public OrthographicCamera camera;
 	public AssetManager assetManager;
-
 	public BitmapFont font;
 	public BitmapFont fontBig;
 	public SpriteBatch batch;
 	public Skin skin;
+	//Screens
 	public LoadingScreen loadingScreen;
 	public Menu menu;
 	public MatchSounds matchSounds;
 
+	public enum GAMEMODE {SURVIVAL,CUSTOM}
+	public GAMEMODE gamemode;
 
 	@Override
 	public void create () {

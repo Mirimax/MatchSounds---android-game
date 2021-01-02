@@ -7,6 +7,7 @@ public class AnswerTile extends Tile {
     public float overlappingTileX, overlappingTileY;
     public boolean isFree;
     public int occupiedPianoTile;
+    public int occupiedNote;
 
     public AnswerTile(String text, Skin skin, String style, int id, float x, float y, float width, float height) {
         super(text, skin, style, id, x, y, width, height);
@@ -16,5 +17,6 @@ public class AnswerTile extends Tile {
         getLabel().setAlignment(Align.top);
         isFree = true;
         occupiedPianoTile = -1;
+        occupiedNote = -1;
     }
 }
