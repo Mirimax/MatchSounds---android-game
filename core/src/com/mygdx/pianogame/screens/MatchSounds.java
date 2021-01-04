@@ -2,6 +2,7 @@ package com.mygdx.pianogame.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -40,6 +41,7 @@ public class MatchSounds implements Screen {
     private int cnt;
     private int counter;
     private boolean startPlaySequence;
+    private boolean checkSequence;
     //Actors of stage
     private PianoTile[] tiles;
     private AnswerTile[] answerTiles;
@@ -86,7 +88,7 @@ public class MatchSounds implements Screen {
         cnt = 0;
         timer = 0;
         startPlaySequence = false;
-
+        checkSequence = false;
     }
 
     @Override
@@ -95,14 +97,15 @@ public class MatchSounds implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         playSequence();
+        playAndCheckSequence();
 
         //Displaying text
         app.batch.begin();
-        app.font.draw(app.batch,text,Gdx.graphics.getWidth()/2f - text.width/2,Gdx.graphics.getHeight()*9/10f);
+        app.font.draw(app.batch,text,stage.getWidth()/2f - text.width/2,stage.getHeight()-(stage.getHeight()-replayButton.getY()-replayButton.getHeight())/2 + text.height/2);
         app.batch.end();
 
         update(delta);
-        stage.draw();
+            stage.draw();
     }
 
     private void checkAnswer(){
@@ -210,16 +213,19 @@ public class MatchSounds implements Screen {
             noteImg[i] = new Image(noteTex);
             float tempX = stage.getWidth()/2f-(int)(correctSequence.size()/2f)*(noteTex.getWidth() + 100)+ i*(noteTex.getWidth()+ 100);
             if(correctSequence.size()%2 == 1) tempX -= noteTex.getWidth()/2f;
-            noteImg[i].setPosition(tempX+300,stage.getHeight() + noteTex.getHeight()+200);
             noteImg[i].setOrigin(noteTex.getWidth()/2f,noteTex.getHeight()/2f);
+            noteImg[i].setPosition(tempX+300,stage.getHeight() + noteTex.getHeight()+200);
             noteImg[i].addAction(Actions.sequence(scaleTo(4f,4f),
-                    parallel(moveTo(tempX,replayButton.getHeight()/2f + noteTex.getHeight(),0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
+                    parallel(moveTo(tempX,replayButton.getHeight()/2f + noteTex.getHeight()/2f,0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
             ));
             stage.addActor(noteImg[i]);
         }
     }
 
     private void initMatchingPart(){
+        initTiles();
+        state = GAMESTATE.MATCH;
+
         skipButton.setVisible(false);
         replayButton.setVisible(false);
         for(int i=0;i<noteImg.length;i++) {
@@ -239,12 +245,9 @@ public class MatchSounds implements Screen {
             }
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                for(int i=0;i<answerTiles.length;i++){
-                    Gdx.app.log(i+1 + ": ",Integer.toString(answerTiles[i].occupiedPianoTile));
-                    startPlaySequence = true;
-                    cnt = 0;
-                    timer = 50;
-                }
+                startPlaySequence = true;
+                cnt = 0;
+                timer = 50;
             }
         });
         stage.addActor(playButton);
@@ -261,13 +264,14 @@ public class MatchSounds implements Screen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                checkAnswer();
+                checkSequence = true;
+                startPlaySequence = false;
+                cnt = 0;
+                timer = 50;
             }
         });
         stage.addActor(checkButton);
 
-        initTiles();
-        state = GAMESTATE.MATCH;
     }
 
     private void initResultPart(){
@@ -440,11 +444,34 @@ public class MatchSounds implements Screen {
                         timer = 0;
                     }
                     cnt++;
+                    if(cnt == answerTiles.length) startPlaySequence = false;
                 }
             }
         }
     }
 
+    private void playAndCheckSequence(){
+        if(checkSequence){
+            timer++;
+            if(cnt < answerTiles.length && timer >= 35){
+                if(answerTiles[cnt].occupiedPianoTile != -1){
+                    singleNotes[answerTiles[cnt].occupiedNote].play();
+                }
+                if (answerTiles[cnt].occupiedNote == correctSequence.get(cnt)) {
+                    answerTiles[cnt].setColor(Color.GREEN);
+                }
+                else{
+                    answerTiles[cnt].setColor(Color.RED);
+                }
+                cnt++;
+                if(cnt == answerTiles.length) {
+                    checkSequence = false;
+                    checkAnswer();
+                }
+                timer = 0;
+            }
+        }
+    }
     @Override
     public void resize(int width, int height) {
 
