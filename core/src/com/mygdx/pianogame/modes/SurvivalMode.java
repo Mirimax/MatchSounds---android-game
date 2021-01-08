@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.Random;
 
 public class SurvivalMode {
-    Random random;
+    private Random random;
     private ArrayList<Integer> correctSequence;
     private ArrayList<Integer> pianoTilesToShow;
     public int currentLevel;
     private int additionalTiles;
+    private int answerTiles;
+    private int reapetLevel;
 
     public SurvivalMode(){
        random = new Random();
@@ -19,10 +21,22 @@ public class SurvivalMode {
     }
     public void generateNextLevel(){
         currentLevel++;
-        if(additionalTiles%3 == 0) additionalTiles = 0;
+        if(additionalTiles%2 == 0){
+            if(reapetLevel == 0){
+                additionalTiles = 1;
+                answerTiles++;
+                reapetLevel = 3;
+            }
+            else{
+                reapetLevel--;
+            }
+        }
+        else{
+            additionalTiles++;
+        }
         correctSequence.clear();
         pianoTilesToShow.clear();
-        for(int i=0;i<(currentLevel/3)+1;i++){
+        for(int i=0;i<answerTiles;i++){
            correctSequence.add(random.nextInt(88));
            pianoTilesToShow.add(correctSequence.get(i));
         }
@@ -36,6 +50,8 @@ public class SurvivalMode {
         pianoTilesToShow.clear();
         currentLevel = 1;
         additionalTiles = 1;
+        answerTiles = 1;
+        reapetLevel = 3;
         correctSequence.add(random.nextInt(88));
         pianoTilesToShow.add(correctSequence.get(0));
         pianoTilesToShow.add(random.nextInt(88));
