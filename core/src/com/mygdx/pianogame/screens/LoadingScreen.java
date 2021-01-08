@@ -17,6 +17,7 @@ public class LoadingScreen implements Screen {
     private int timer;
     private int cnt;
     private String text;
+
     public LoadingScreen(final GameClass app){
         this.app = app;
         shapeRenderer = new ShapeRenderer();
@@ -85,8 +86,12 @@ public class LoadingScreen implements Screen {
 
     //loading all assets at launch
     private void loadingAssets(){
+        app.assetManager.load("img/background.png", Texture.class);
+        app.assetManager.load("img/background1.png", Texture.class);
+        app.assetManager.load("img/background2.png", Texture.class);
         for(int i = +0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
         app.assetManager.load("ui/uiskin.atlas", TextureAtlas.class);
         app.assetManager.load("img/note.png", Texture.class);
+        app.assetManager.load("sounds/empty_tile.mp3", Sound.class);
     }
 }

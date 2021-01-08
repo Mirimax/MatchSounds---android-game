@@ -3,10 +3,13 @@ package com.mygdx.pianogame.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.mygdx.pianogame.GameClass;
@@ -15,9 +18,14 @@ import com.mygdx.pianogame.GameClass;
 public class Menu implements Screen {
     private final GameClass app;
     private Stage stage;
-
+    private Boolean showInfo;
     private GlyphLayout mathSoundText;
     private GlyphLayout additionalInfoText;
+    //Buttons
+    private TextButton survivalMode;
+    private TextButton customMode;
+    private TextButton exit;
+    private TextButton info;
 
     public Menu(final GameClass app){
         this.app = app;
@@ -29,9 +37,20 @@ public class Menu implements Screen {
         stage.clear();
         Gdx.input.setInputProcessor(stage);
 
-        //Text of the title of the game
+        showInfo = false;
+
+        //Text setup
         mathSoundText = new GlyphLayout(app.fontBig,"Match sounds");
-        additionalInfoText = new GlyphLayout(app.fontBlack,"Best survival score: " + Gdx.app.getPreferences("Prefs").getInteger("survivalBest"));
+        additionalInfoText = new GlyphLayout(app.fontSmallBlack,"Survival - best score: " + Gdx.app.getPreferences("Prefs").getInteger("survivalBest") +
+                "\nSurvival games played: " + app.prefs.getInteger("survivalGamesPlayed",0) +
+                "\nTotal rounds played: " + app.prefs.getInteger("roundsPlayed",0));
+
+        //Settings background image.
+        Texture backgroundTex = app.assetManager.get("img/background.png",Texture.class);
+        Image backgroundImage = new Image(backgroundTex);
+        backgroundImage.setSize(stage.getWidth(),stage.getHeight());
+        stage.addActor(backgroundImage);
+
         initButtons();
     }
 
@@ -40,22 +59,23 @@ public class Menu implements Screen {
         Gdx.gl.glClearColor(1f,1f,1f,1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //Displaying text
+        //Displays text.
         app.batch.begin();
-        app.fontBig.draw(app.batch,mathSoundText,stage.getWidth()/2f - mathSoundText.width/2,stage.getHeight()- 100 - mathSoundText.height);
-        app.fontBlack.draw(app.batch,additionalInfoText,stage.getWidth() - additionalInfoText.width - 50,stage.getHeight()- 100 - additionalInfoText.height);
+        if(showInfo){
+            app.fontSmallBlack.draw(app.batch,additionalInfoText,stage.getWidth() - additionalInfoText.width - 50,stage.getHeight()- 100 - additionalInfoText.height);
+        }
+        app.fontBig.draw(app.batch,mathSoundText,stage.getWidth()/2f - mathSoundText.width/2,survivalMode.getY()/2+survivalMode.getHeight()/2+stage.getHeight()/2 + mathSoundText.height/2);
         app.batch.end();
 
-        update(delta);
+        stage.act(delta);
         stage.draw();
     }
 
     private void initButtons(){
-        //Option nr.1 - Survival mode
-        TextButton survivalMode = new TextButton("Survival", app.skin);
-        survivalMode.setPosition(stage.getWidth()/2 - 300,stage.getHeight()/2);
+        //Survival mode button
+        survivalMode = new TextButton("Survival", app.skin);
         survivalMode.setSize(600f,200f);
-//        survivalMode.setColor(0.302f,0.302f,0.302f,1f);
+        survivalMode.setPosition(stage.getWidth()/2 - survivalMode.getWidth()/2,stage.getHeight()/2);
         survivalMode.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -70,10 +90,10 @@ public class Menu implements Screen {
         });
         stage.addActor(survivalMode);
 
-        //Option nr.2 - Custom mode
-        TextButton customMode = new TextButton("Custom", app.skin, "default");
-        customMode.setPosition(stage.getWidth()/2 - 300,stage.getHeight()/2-225);
+        //Custom mode button
+        customMode = new TextButton("Custom", app.skin, "default");
         customMode.setSize(600,200);
+        customMode.setPosition(stage.getWidth()/2 - customMode.getWidth()/2,survivalMode.getY()-25-customMode.getHeight());
         customMode.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -87,10 +107,10 @@ public class Menu implements Screen {
         });
         stage.addActor(customMode);
 
-        //Option nr.3 - Exit from game
-        TextButton exit = new TextButton("Exit", app.skin, "default");
-        exit.setPosition(stage.getWidth()/2 - 300,stage.getHeight()/2 - 450);
+        //Exit from game button
+        exit = new TextButton("Exit", app.skin, "default");
         exit.setSize(600,200);
+        exit.setPosition(stage.getWidth()/2 - exit.getWidth()/2,customMode.getY()-25-exit.getHeight());
         exit.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -102,15 +122,27 @@ public class Menu implements Screen {
             }
         });
         stage.addActor(exit);
+
+        //Info button for information stored in local memory
+        info = new TextButton("info", app.skinSmall, "default");
+        info.setSize(250,100);
+        info.setPosition(stage.getWidth() - info.getWidth() - 100,stage.getHeight() - info.getHeight() - 50);
+        info.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                return true;
+            }
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                showInfo = !showInfo;
+            }
+        });
+        stage.addActor(info);
     }
 
     @Override
     public void resize(int width, int height) {
 
-    }
-
-    private void update(float delta) {
-        stage.act(delta);
     }
 
     @Override

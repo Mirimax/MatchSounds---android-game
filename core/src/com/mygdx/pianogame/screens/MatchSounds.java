@@ -32,6 +32,7 @@ public class MatchSounds implements Screen {
     private enum GAMESTATE {LISTEN,MATCH}
     private GAMESTATE state;
     private Sound[] singleNotes;
+    private Sound emptyTileSound;
     private SurvivalMode survivalMode;
     //notes sequences
     private ArrayList<Integer> pianoTilesToShow;
@@ -48,7 +49,7 @@ public class MatchSounds implements Screen {
     private TextButton backButton;
     private TextButton skipButton;
     private TextButton playButton;
-    private TextButton replayButton;
+    private TextButton playagainButton;
     private TextButton checkButton;
     private TextButton resetSurvival;
     private TextButton nextLevel;
@@ -70,8 +71,10 @@ public class MatchSounds implements Screen {
     @Override
     public void show() {
         stage.clear();
-        for(int i = 0; i<88;i++) singleNotes[87-i] = app.assetManager.get("sounds/singlenotes/"+ (i+1) + ".mp3",Sound.class);
         Gdx.input.setInputProcessor(stage);
+
+        for(int i = 0; i<88;i++) singleNotes[87-i] = app.assetManager.get("sounds/singlenotes/"+ (i+1) + ".mp3",Sound.class);
+        emptyTileSound = app.assetManager.get("sounds/empty_tile.mp3",Sound.class);
 
         if (app.gamemode == GameClass.GAMEMODE.SURVIVAL) {
             pianoTilesToShow = survivalMode.getPianoTilesToShow();
@@ -84,7 +87,7 @@ public class MatchSounds implements Screen {
         initListeningPart();
         state = GAMESTATE.LISTEN;
         counter = 3;
-        text.setText(app.fontBlack,"Times to re-play: " + counter);
+        text.setText(app.fontBlack,"Left times to play again: " + counter);
         cnt = 0;
         timer = 0;
         startPlaySequence = false;
@@ -101,7 +104,7 @@ public class MatchSounds implements Screen {
 
         //Displaying text
         app.batch.begin();
-        app.font.draw(app.batch,text,stage.getWidth()/2f - text.width/2,stage.getHeight()-(stage.getHeight()-replayButton.getY()-replayButton.getHeight())/2 + text.height/2);
+        app.font.draw(app.batch,text,stage.getWidth()/2f - text.width/2,playagainButton.getY()/2+playagainButton.getHeight()/2+stage.getHeight()/2+text.height/2);
         app.batch.end();
 
         update(delta);
@@ -123,37 +126,41 @@ public class MatchSounds implements Screen {
         initResultPart();
         //decide the next action that depends on the chosen game mode and correctness of the answer
         if (app.gamemode == GameClass.GAMEMODE.SURVIVAL) {
-           if(correct){
-              nextLevel.setVisible(true);
-              text.setText(app.font,"Correct!\nYour current score is: " + survivalMode.currentLevel + ".");
-           }
+            if(correct){
+                nextLevel.setVisible(true);
+                text.setText(app.font,"Correct!\nCurrent score: " + survivalMode.currentLevel + ".");
+            }
            else{
-               resetSurvival.setVisible(true);
-               text.setText(app.font,"Wrong!.\nYour final score is: " + (survivalMode.currentLevel - 1) + ".");
-               int tmp = app.prefs.getInteger("survivalBest",survivalMode.currentLevel-1);
-               app.prefs.putInteger("survivalBest",Math.max(tmp,survivalMode.currentLevel-1));
-               app.prefs.flush();
-           }
+                resetSurvival.setVisible(true);
+                text.setText(app.font,"Wrong!.\nYour final score is " + (survivalMode.currentLevel - 1) + ".");
+                int tmp = app.prefs.getInteger("survivalBest",survivalMode.currentLevel-1);
+                app.prefs.putInteger("survivalBest",Math.max(tmp,survivalMode.currentLevel-1));
+                app.prefs.putInteger("survivalGamesPlayed",app.prefs.getInteger("survivalGamesPlayed",0) + 1);
+            }
         }
         else if(app.gamemode == GameClass.GAMEMODE.CUSTOM){
             if(correct){
-              text.setText(app.font,"Correct!");
+                text.setText(app.font,"Correct!");
             }
             else{
-               text.setText(app.font,"Wrong!");
+                text.setText(app.font,"Wrong!");
             }
             resetCustom.setVisible(true);
             changeSettingsCustom.setVisible(true);
         }
+        app.prefs.putInteger("roundsPlayed",app.prefs.getInteger("roundsPlayed",0) + 1);
+        app.prefs.flush();
     }
 
-
     private void initListeningPart(){
+        Texture backgroundTex = app.assetManager.get("img/background2.png",Texture.class);
+        Image backgroundImage = new Image(backgroundTex);
+        backgroundImage.setSize(stage.getWidth(),stage.getHeight());
+        stage.addActor(backgroundImage);
         //button for back to the menu at any time
         backButton = new TextButton("back", app.skinSmall, "default");
-        backButton.setPosition(50,stage.getHeight()-150);
         backButton.setSize(300,100);
-        backButton.setName("backButton");
+        backButton.setPosition(100,stage.getHeight()-backButton.getHeight()-50);
         backButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -169,9 +176,8 @@ public class MatchSounds implements Screen {
 
         //button for skip the listening part and start matching sounds
         skipButton = new TextButton("skip", app.skinSmall, "default");
-        skipButton.setPosition(stage.getWidth()-350,stage.getHeight()-150);
         skipButton.setSize(300,100);
-        skipButton.setName("skipButton");
+        skipButton.setPosition(stage.getWidth()-skipButton.getWidth()-100,stage.getHeight()-skipButton.getHeight()-50);
         skipButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -185,11 +191,10 @@ public class MatchSounds implements Screen {
         stage.addActor(skipButton);
 
         //button for re-playing the sequence of sounds in the listening part
-        replayButton = new TextButton("Re-play", app.skin, "default");
-        replayButton.setSize(400,150);
-        replayButton.setName("replayButton");
-        replayButton.setPosition(Gdx.graphics.getWidth()/2f - 200,Gdx.graphics.getHeight()*7/10f);
-        replayButton.addListener(new InputListener(){
+        playagainButton = new TextButton("Play again", app.skinSmall, "default");
+        playagainButton.setSize(400,150);
+        playagainButton.setPosition(Gdx.graphics.getWidth()/2f - 200,stage.getHeight()*2/3-170/2f);
+        playagainButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 return true;
@@ -200,12 +205,12 @@ public class MatchSounds implements Screen {
                     startPlaySequence = true;
                     cnt = 0;
                     counter--;
-                    text.setText(app.font,"Times to re-play: " + counter);
+                    text.setText(app.font,"Left times to play again: " + counter);
                     timer = 50;
                 }
             }
         });
-        stage.addActor(replayButton);
+        stage.addActor(playagainButton);
 
         noteTex = app.assetManager.get("img/note.png", Texture.class);
         noteImg = new Image[correctSequence.size()];
@@ -216,7 +221,7 @@ public class MatchSounds implements Screen {
             noteImg[i].setOrigin(noteTex.getWidth()/2f,noteTex.getHeight()/2f);
             noteImg[i].setPosition(tempX+300,stage.getHeight() + noteTex.getHeight()+200);
             noteImg[i].addAction(Actions.sequence(scaleTo(4f,4f),
-                    parallel(moveTo(tempX,replayButton.getHeight()/2f + noteTex.getHeight()/2f,0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
+                    parallel(moveTo(tempX,playagainButton.getY()/2-noteTex.getHeight()/2f,0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
             ));
             stage.addActor(noteImg[i]);
         }
@@ -227,17 +232,19 @@ public class MatchSounds implements Screen {
         state = GAMESTATE.MATCH;
 
         skipButton.setVisible(false);
-        replayButton.setVisible(false);
+        playagainButton.setVisible(false);
         for(int i=0;i<noteImg.length;i++) {
             noteImg[i].setVisible(false);
         }
-
-        text.setText(app.font,"Level: " + survivalMode.currentLevel + "\n" + app.gamemode);
-
-        playButton = new TextButton("Play\nthe sequence", app.skinSmall, "default");
+        if(app.gamemode == GameClass.GAMEMODE.SURVIVAL){
+            text.setText(app.font,"Level: " + survivalMode.currentLevel);
+        }
+        else{
+            text.setText(app.font,"" + survivalMode.currentLevel + "\n" + app.gamemode);
+        }
+        playButton = new TextButton("Play", app.skinSmall, "default");
         playButton.setSize(400,150);
-        playButton.setName("playButton");
-        playButton.setPosition(100,stage.getHeight()/2 - playButton.getHeight()/2);
+        playButton.setPosition(stage.getWidth() - playButton.getWidth()-100,stage.getHeight()/2- playButton.getHeight()/2);
         playButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -252,10 +259,9 @@ public class MatchSounds implements Screen {
         });
         stage.addActor(playButton);
 
-        checkButton = new TextButton("check", app.skinSmall, "default");
+        checkButton = new TextButton("check\nanswer", app.skinSmall, "default");
         checkButton.setSize(400,150);
-        checkButton.setName("checkButton");
-        checkButton.setPosition(stage.getWidth() - checkButton.getWidth()-100,stage.getHeight()/2- checkButton.getHeight()/2);
+        checkButton.setPosition(stage.getWidth() - checkButton.getWidth()-100,stage.getHeight()- checkButton.getHeight() - 50);
         checkButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -264,6 +270,7 @@ public class MatchSounds implements Screen {
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                checkButton.setDisabled(true);
                 checkSequence = true;
                 startPlaySequence = false;
                 cnt = 0;
@@ -275,10 +282,9 @@ public class MatchSounds implements Screen {
     }
 
     private void initResultPart(){
-        nextLevel = new TextButton("Next Level", app.skin, "default");
+        nextLevel = new TextButton("Next Level", app.skinSmall, "default");
         nextLevel.setSize(400,150);
         nextLevel.setPosition(stage.getWidth() - nextLevel.getWidth()-100,stage.getHeight()/2- nextLevel.getHeight()/2);
-        nextLevel.setName("nextLevel");
         nextLevel.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -293,10 +299,9 @@ public class MatchSounds implements Screen {
         stage.addActor(nextLevel);
         nextLevel.setVisible(false);
 
-        resetSurvival = new TextButton("Reset", app.skin, "default");
+        resetSurvival = new TextButton("Reset", app.skinSmall, "default");
         resetSurvival.setSize(400,150);
         resetSurvival.setPosition(stage.getWidth() - resetSurvival.getWidth()-100,stage.getHeight()/2- resetSurvival.getHeight()/2);
-        resetSurvival.setName("resetSurvival");
         resetSurvival.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -314,7 +319,6 @@ public class MatchSounds implements Screen {
         resetCustom = new TextButton("Reset", app.skinSmall, "default");
         resetCustom.setSize(400,150);
         resetCustom.setPosition(stage.getWidth() - resetCustom.getWidth()-100,stage.getHeight()/2- resetCustom.getHeight()-50);
-        resetCustom.setName("resetCustom");
         resetCustom.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -332,7 +336,6 @@ public class MatchSounds implements Screen {
         changeSettingsCustom = new TextButton("Change\nSettings", app.skinSmall, "default");
         changeSettingsCustom.setSize(400,150);
         changeSettingsCustom.setPosition(stage.getWidth() - changeSettingsCustom.getWidth()-100,stage.getHeight()/2 + 50);
-        changeSettingsCustom.setName("changeSettingsCustom");
         changeSettingsCustom.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -356,7 +359,6 @@ public class MatchSounds implements Screen {
             float tempX = stage.getWidth()/2f-(int)(answerTiles.length/2f)*(tempWidth + 25)+ i*(tempWidth + 25);
             if(answerTiles.length%2 == 1) tempX -= tempWidth/2f;
             answerTiles[i] = new AnswerTile("",app.skin,"mine",pianoTilesToShow.get(i),tempX,stage.getHeight()/3-tempHeight/2f,tempWidth,tempHeight);
-            answerTiles[i].setName("answerTile" + i);
             answerTiles[i].setDisabled(true);
             stage.addActor(answerTiles[i]);
         }
@@ -370,7 +372,6 @@ public class MatchSounds implements Screen {
             float tempX = stage.getWidth()/2-(int)(tiles.length/2f)*(tempWidth+25) + i*tempWidth + i*25;
             if(tiles.length%2 == 1) tempX -= tempWidth/2f;
             tiles[i] = new PianoTile(Integer.toString(i+1),app.skin,"default",pianoTilesToShow.get(i),tempX,stage.getHeight()*2/3-tempHeight/2f,tempWidth,tempHeight);
-            tiles[i].setName("tile" + i);
             tiles[i].addListener(new InputListener(){
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -456,6 +457,9 @@ public class MatchSounds implements Screen {
             if(cnt < answerTiles.length && timer >= 35){
                 if(answerTiles[cnt].occupiedPianoTile != -1){
                     singleNotes[answerTiles[cnt].occupiedNote].play();
+                }
+                else{
+                    emptyTileSound.play();
                 }
                 if (answerTiles[cnt].occupiedNote == correctSequence.get(cnt)) {
                     answerTiles[cnt].setColor(Color.GREEN);

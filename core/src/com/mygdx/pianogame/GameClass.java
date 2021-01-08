@@ -49,7 +49,6 @@ public class GameClass extends Game {
 
 		initFonts();
 		initSkins();
-		initPrefs();
 		loadingScreen = new LoadingScreen(this);
 		menu = new Menu(this);
 		matchSounds = new MatchSounds(this);
@@ -95,18 +94,17 @@ public class GameClass extends Game {
 		fontBlack.setColor(Color.BLACK);
 
 		fontSmallBlack = fontSmall;
-		fontSmallBlack.setColor(Color.WHITE);
+		fontSmallBlack.setColor(Color.BLACK);
 	}
 	private void initSkins(){
 		skin = new Skin();
 		skin.addRegions(new TextureAtlas(Gdx.files.internal("ui/uiskin.atlas")));
 		skin.add("default-font",this.font);
 		skin.load(Gdx.files.internal("ui/uiskin.json"));
+
 		skinSmall = new Skin();
 		skinSmall.addRegions(new TextureAtlas(Gdx.files.internal("ui/uiskin.atlas")));
 		skinSmall.add("default-font",this.fontSmall);
 		skinSmall.load(Gdx.files.internal("ui/uiskin.json"));
-	}
-	private void initPrefs(){
 	}
 }
