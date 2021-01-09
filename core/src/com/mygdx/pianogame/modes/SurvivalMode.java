@@ -11,7 +11,8 @@ public class SurvivalMode {
     public int currentLevel;
     private int additionalTiles;
     private int answerTiles;
-    private int reapetLevel;
+    private int repeatLevel;
+    public int livesLeft;
 
     public SurvivalMode(){
        random = new Random();
@@ -19,16 +20,17 @@ public class SurvivalMode {
        pianoTilesToShow = new ArrayList<Integer>();
        resetLevels();
     }
+
     public void generateNextLevel(){
         currentLevel++;
         if(additionalTiles%2 == 0){
-            if(reapetLevel == 0){
+            if(repeatLevel == 0){
                 additionalTiles = 1;
                 answerTiles++;
-                reapetLevel = 3;
+                repeatLevel = 3;
             }
             else{
-                reapetLevel--;
+                repeatLevel--;
             }
         }
         else{
@@ -45,13 +47,15 @@ public class SurvivalMode {
         }
         Collections.shuffle(pianoTilesToShow);
     }
+
     public void resetLevels(){
         correctSequence.clear();
         pianoTilesToShow.clear();
         currentLevel = 1;
         additionalTiles = 1;
         answerTiles = 1;
-        reapetLevel = 3;
+        repeatLevel = 3;
+        livesLeft = 3;
         correctSequence.add(random.nextInt(88));
         pianoTilesToShow.add(correctSequence.get(0));
         pianoTilesToShow.add(random.nextInt(88));

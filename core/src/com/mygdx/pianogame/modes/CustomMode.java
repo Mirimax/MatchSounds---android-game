@@ -3,12 +3,12 @@ package com.mygdx.pianogame.modes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -25,11 +25,14 @@ public class CustomMode implements Screen {
 
     private ArrayList<Integer> correctSequence;
     private ArrayList<Integer> pianoTilesToShow;
+    private int listenAgainCnt;
 
     private Slider numberOfTilesSlider;
-    private GlyphLayout numberOfTilesText;
     private Slider numberOfAdditionalTilesSlider;
+    private Slider listenAgainSlider;
+    private GlyphLayout numberOfTilesText;
     private GlyphLayout numberOfAdditionalTilesText;
+    private GlyphLayout listenAgainText;
 
     public CustomMode(final GameClass app){
        this.app = app;
@@ -38,13 +41,20 @@ public class CustomMode implements Screen {
        correctSequence = new ArrayList<Integer>();
        pianoTilesToShow = new ArrayList<Integer>();
     }
+
     @Override
     public void show() {
         stage.clear();
-        Gdx.input.setInputProcessor(stage);
+
+        Texture backgroundTex = app.assetManager.get("img/background.png",Texture.class);
+        Image backgroundImage = new Image(backgroundTex);
+        backgroundImage.setSize(stage.getWidth(),stage.getHeight());
+        stage.addActor(backgroundImage);
 
         initSelectBoxes();
         initButtons();
+
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -52,32 +62,50 @@ public class CustomMode implements Screen {
         Gdx.gl.glClearColor(1f,1f,1f,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //text update
+        displayText();
+
+        stage.draw();
+        stage.act();
+    }
+
+    private void displayText(){
         numberOfTilesText.setText(app.font,"Number of answer tiles: " + (int)numberOfTilesSlider.getValue());
         numberOfAdditionalTilesText.setText(app.font,"Number of additional tiles: " + (int)numberOfAdditionalTilesSlider.getValue());
+        listenAgainText.setText(app.font,"Times to listen again: " + (int)listenAgainSlider.getValue());
         app.batch.begin();
-        app.font.draw(app.batch,numberOfTilesText,numberOfTilesSlider.getX(),numberOfTilesSlider.getY() + numberOfTilesSlider.getHeight() + numberOfTilesText.height + 10);
-        app.font.draw(app.batch,numberOfAdditionalTilesText,numberOfAdditionalTilesSlider.getX(),numberOfAdditionalTilesSlider.getY() + numberOfAdditionalTilesSlider.getHeight() + numberOfAdditionalTilesText.height + 10);
+        app.font.draw(app.batch,numberOfTilesText,numberOfTilesSlider.getX(),numberOfTilesSlider.getY() + 150);
+        app.font.draw(app.batch,numberOfAdditionalTilesText,numberOfAdditionalTilesSlider.getX(),numberOfAdditionalTilesSlider.getY() + 150);
+        app.font.draw(app.batch,listenAgainText,listenAgainSlider.getX(),listenAgainSlider.getY() + 150);
         app.batch.end();
-
-        stage.act(delta);
-        stage.draw();
     }
 
     private void initSelectBoxes(){
-        numberOfTilesSlider = new Slider(1f,10f,1f,false,app.skinSmall);
+        numberOfTilesSlider = new Slider(1f,6f,1f,false,app.skinSmall);
         numberOfTilesSlider.setWidth(stage.getWidth()/3);
         numberOfTilesSlider.setPosition(stage.getWidth()/2 - numberOfTilesSlider.getWidth()/2,stage.getHeight()/5*4);
+        numberOfTilesSlider.getStyle().knob.setMinHeight(75);
+        numberOfTilesSlider.getStyle().knob.setMinWidth(30);
         stage.addActor(numberOfTilesSlider);
 
         numberOfTilesText = new GlyphLayout(app.font,"Number of answer tiles: ");
 
-        numberOfAdditionalTilesSlider = new Slider(1f,5f,1f,false,app.skinSmall);
+        numberOfAdditionalTilesSlider = new Slider(0f,8f,1f,false,app.skinSmall);
         numberOfAdditionalTilesSlider.setWidth(stage.getWidth()/3);
         numberOfAdditionalTilesSlider.setPosition(stage.getWidth()/2 - numberOfAdditionalTilesSlider.getWidth()/2,stage.getHeight()/5*3);
+        numberOfAdditionalTilesSlider.getStyle().knob.setTopHeight(75);
+        numberOfAdditionalTilesSlider.getStyle().knob.setMinWidth(30);
         stage.addActor(numberOfAdditionalTilesSlider);
 
         numberOfAdditionalTilesText = new GlyphLayout(app.font,"Number of additional tiles: ");
+
+        listenAgainSlider = new Slider(1f,5f,1f,false,app.skinSmall);
+        listenAgainSlider.setWidth(stage.getWidth()/3);
+        listenAgainSlider.setPosition(stage.getWidth()/2 - listenAgainSlider.getWidth()/2,stage.getHeight()/5*2);
+        listenAgainSlider.getStyle().knob.setMinHeight(75);
+        listenAgainSlider.getStyle().knob.setMinWidth(30);
+        stage.addActor(listenAgainSlider);
+
+        listenAgainText = new GlyphLayout(app.font,"Times to listen again: ");
     }
 
     public void generateSequence(){
@@ -91,13 +119,6 @@ public class CustomMode implements Screen {
             pianoTilesToShow.add(random.nextInt(88));
         }
         Collections.shuffle(pianoTilesToShow);
-    }
-    public ArrayList<Integer> getPianoTilesToShow() {
-        return pianoTilesToShow;
-    }
-
-    public ArrayList<Integer> getCorrectSequence() {
-        return correctSequence;
     }
 
     private void initButtons(){
@@ -129,34 +150,39 @@ public class CustomMode implements Screen {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 generateSequence();
+                listenAgainCnt = (int)listenAgainSlider.getValue();
                 app.setScreen(app.matchSounds);
             }
         });
         stage.addActor(startButton);
     }
 
-    @Override
-    public void resize(int width, int height) {
-
+    public ArrayList<Integer> getPianoTilesToShow() {
+        return pianoTilesToShow;
     }
 
-    @Override
-    public void pause() {
-
+    public ArrayList<Integer> getCorrectSequence() {
+        return correctSequence;
     }
 
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-
+    public int getListenAgainCnt(){
+        return listenAgainCnt;
     }
 
     @Override
     public void dispose() {
         stage.dispose();
     }
+
+    @Override
+    public void resize(int width, int height) { }
+
+    @Override
+    public void pause() { }
+
+    @Override
+    public void resume() { }
+
+    @Override
+    public void hide() { }
 }

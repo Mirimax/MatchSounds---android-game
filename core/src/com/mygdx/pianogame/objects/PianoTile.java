@@ -13,5 +13,4 @@ public class PianoTile extends Tile {
         this.setColor(0.302f,0.302f,0.302f,1f);
         occupiedAnswerTile = -1;
     }
-
 }

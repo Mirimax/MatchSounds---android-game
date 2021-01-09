@@ -21,23 +21,26 @@ import com.mygdx.pianogame.screens.Menu;
 public class GameClass extends Game {
 	public OrthographicCamera camera;
 	public AssetManager assetManager;
+
+	public enum GAMEMODE {SURVIVAL,CUSTOM}
+	public GAMEMODE gamemode;
+
+	public Preferences prefs;
+	public SpriteBatch batch;
+
 	public BitmapFont font;
 	public BitmapFont fontSmall;
 	public BitmapFont fontSmallBlack;
 	public BitmapFont fontBig;
 	public BitmapFont fontBlack;
-	public SpriteBatch batch;
 	public Skin skin;
 	public Skin skinSmall;
-	//Screens
+
 	public LoadingScreen loadingScreen;
 	public Menu menu;
 	public MatchSounds matchSounds;
-	public CustomMode customMode;
 
-	public enum GAMEMODE {SURVIVAL,CUSTOM}
-	public GAMEMODE gamemode;
-	public Preferences prefs;
+	public CustomMode customMode;
 
 	@Override
 	public void create () {
@@ -49,10 +52,12 @@ public class GameClass extends Game {
 
 		initFonts();
 		initSkins();
+
 		loadingScreen = new LoadingScreen(this);
 		menu = new Menu(this);
 		matchSounds = new MatchSounds(this);
 		customMode = new CustomMode(this);
+
 		this.setScreen(loadingScreen);
 	}
 
@@ -61,18 +66,6 @@ public class GameClass extends Game {
 		super.render();
 	}
 	
-	@Override
-	public void dispose () {
-		batch.dispose();
-		font.dispose();
-		fontBig.dispose();
-		skin.dispose();
-		assetManager.dispose();
-		loadingScreen.dispose();
-		menu.dispose();
-		matchSounds.dispose();
-	}
-
 	private void initFonts(){
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Arcon.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -96,6 +89,7 @@ public class GameClass extends Game {
 		fontSmallBlack = fontSmall;
 		fontSmallBlack.setColor(Color.BLACK);
 	}
+
 	private void initSkins(){
 		skin = new Skin();
 		skin.addRegions(new TextureAtlas(Gdx.files.internal("ui/uiskin.atlas")));
@@ -106,5 +100,21 @@ public class GameClass extends Game {
 		skinSmall.addRegions(new TextureAtlas(Gdx.files.internal("ui/uiskin.atlas")));
 		skinSmall.add("default-font",this.fontSmall);
 		skinSmall.load(Gdx.files.internal("ui/uiskin.json"));
+	}
+
+	@Override
+	public void dispose () {
+		batch.dispose();
+		font.dispose();
+		fontSmall.dispose();
+		fontSmallBlack.dispose();
+		fontBig.dispose();
+		fontBlack.dispose();
+		skin.dispose();
+		skinSmall.dispose();
+		assetManager.dispose();
+		loadingScreen.dispose();
+		menu.dispose();
+		matchSounds.dispose();
 	}
 }

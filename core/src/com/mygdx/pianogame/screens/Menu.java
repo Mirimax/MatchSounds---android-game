@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -18,10 +17,11 @@ import com.mygdx.pianogame.GameClass;
 public class Menu implements Screen {
     private final GameClass app;
     private Stage stage;
+
     private Boolean showInfo;
+
     private GlyphLayout mathSoundText;
     private GlyphLayout additionalInfoText;
-    //Buttons
     private TextButton survivalMode;
     private TextButton customMode;
     private TextButton exit;
@@ -35,7 +35,6 @@ public class Menu implements Screen {
     @Override
     public void show() {
         stage.clear();
-        Gdx.input.setInputProcessor(stage);
 
         showInfo = false;
 
@@ -52,6 +51,8 @@ public class Menu implements Screen {
         stage.addActor(backgroundImage);
 
         initButtons();
+
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -59,16 +60,19 @@ public class Menu implements Screen {
         Gdx.gl.glClearColor(1f,1f,1f,1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //Displays text.
+        displayText();
+
+        stage.act(delta);
+        stage.draw();
+    }
+
+    private void displayText(){
         app.batch.begin();
         if(showInfo){
             app.fontSmallBlack.draw(app.batch,additionalInfoText,stage.getWidth() - additionalInfoText.width - 50,stage.getHeight()- 100 - additionalInfoText.height);
         }
         app.fontBig.draw(app.batch,mathSoundText,stage.getWidth()/2f - mathSoundText.width/2,survivalMode.getY()/2+survivalMode.getHeight()/2+stage.getHeight()/2 + mathSoundText.height/2);
         app.batch.end();
-
-        stage.act(delta);
-        stage.draw();
     }
 
     private void initButtons(){
@@ -84,8 +88,7 @@ public class Menu implements Screen {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 app.gamemode = GameClass.GAMEMODE.SURVIVAL;
-                Gdx.app.log("Info","Actual record: " + app.prefs.getInteger("survivalBest"));
-                ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.matchSounds);
+                app.setScreen(app.matchSounds);
             }
         });
         stage.addActor(survivalMode);
@@ -102,7 +105,7 @@ public class Menu implements Screen {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 app.gamemode = GameClass.GAMEMODE.CUSTOM;
-                ((GameClass)Gdx.app.getApplicationListener()).setScreen(app.customMode);
+                app.setScreen(app.customMode);
             }
         });
         stage.addActor(customMode);
@@ -146,16 +149,13 @@ public class Menu implements Screen {
     }
 
     @Override
-    public void pause() {
-    }
+    public void pause() { }
 
     @Override
-    public void resume() {
-    }
+    public void resume() { }
 
     @Override
-    public void hide() {
-    }
+    public void hide() { }
 
     @Override
     public void dispose() {
