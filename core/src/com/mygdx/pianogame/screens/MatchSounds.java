@@ -22,43 +22,67 @@ import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 
 import java.util.ArrayList;
 
+ /** Class that represents all mechanisms in the game.
+ * In the beginning, it takes settings dependably on the chosen game mode e.g number of tiles to generate.
+ * Then generates respectively listening part, matching sounds part and result part.
+ * @author Paweł Platta */
 public class MatchSounds implements Screen {
     private final GameClass app;
     private Stage stage;
     private SurvivalMode survivalMode;
-
     private enum GAMESTATE {LISTEN,MATCH}
     private GAMESTATE state;
+    /** Table that represents sounds of all 88 piano notes. */
+    public Sound[] singleNotes;
+    /** Sound that is played when a player left an empty answer tile.*/
+    public Sound emptyTileSound;
+    /** List of all piano tiles to generate. Includes the correct ones and the wrong ones. */
+    public ArrayList<Integer> pianoTilesToShow;
+    /** List of all correct sounds. Used to generate answer tiles. */
+    public ArrayList<Integer> correctSequence;
+    /** Counts the time between every note after the play button is clicked. */
+    public float timer;
+    /** Index of music note while the sequence is played. */
+    public int cnt;
+    /** Number of times a player can listen again the sequence. */
+    public int counter;
+    /** Says when to start and stop play the sequence. */
+    public boolean startPlaySequence;
+    /** Says when to start to check the sequence. */
+    public boolean checkSequence;
+    /** Table of all piano tiles on the current level. */
+    public PianoTile[] tiles;
+    /** Table of all answer tiles on the current level. */
+    public AnswerTile[] answerTiles;
+    /** Button for back to the menu at any time. */
+    public TextButton backButton;
+    /** Button for skip the listening part and start matching part immediately. */
+    public TextButton skipButton;
+    /** Button to listen to the sounds set at the answer tiles at the moment. */
+    public TextButton playButton;
+    /** Button to listen again the sequence during the listening part. */
+    public TextButton playAgainButton;
+    /** Button that starts the sequence of checking the answer. */
+    public TextButton checkButton;
+    /** Button visible after the game is ended. Enables reset the game. */
+    public TextButton resetSurvival;
+    /** Button to start the next level. It is visible after the level is finished. */
+    public TextButton nextLevel;
+    /** Button to reset the level with the same settings, previously chosen in the custom game mode screen. */
+    public TextButton resetCustom;
+    /** Button that opens the custom game mode screen. */
+    public TextButton changeSettingsCustom;
+    /** Text of the remaining number of times to listen again to the sequence during the listening part and
+     *  whether the answer is correct or wrong after the answer is checked. */
+    public GlyphLayout text;
+    /** Text of current level. */
+    public GlyphLayout levelText;
+    /** text of the number of remaining lives. */
+    public GlyphLayout livesLeftText;
+    /** Table of music notes that are displayed during the listening part. */
+    public Image[] noteImg;
 
-    private Sound[] singleNotes;
-    private Sound emptyTileSound;
-    //notes sequences
-    private ArrayList<Integer> pianoTilesToShow;
-    private ArrayList<Integer> correctSequence;
-    //Count and check variables
-    private float timer;
-    private int cnt;
-    private int counter;
-    private boolean startPlaySequence;
-    private boolean checkSequence;
-    //Actors of stage
-    private PianoTile[] tiles;
-    private AnswerTile[] answerTiles;
-    private TextButton backButton;
-    private TextButton skipButton;
-    private TextButton playButton;
-    private TextButton playAgainButton;
-    private TextButton checkButton;
-    private TextButton resetSurvival;
-    private TextButton nextLevel;
-    private TextButton resetCustom;
-    private TextButton changeSettingsCustom;
-    private GlyphLayout text; //not quite an actor but let him be there
-    private GlyphLayout levelText;
-    private GlyphLayout livesLeftText;
-    private Texture noteTex;
-    private Image[] noteImg;
-
+    /** Initialize all variables. */
     public MatchSounds(final GameClass app){
         this.app = app;
         stage = new Stage(new FitViewport(Gdx.graphics.getWidth(),Gdx.graphics.getHeight()));
@@ -69,6 +93,8 @@ public class MatchSounds implements Screen {
         survivalMode = new SurvivalMode();
     }
 
+    /** Called when this screen becomes the current screen for a Game.
+     * Clears the stage, sets the settings dependably on the chosen game mode and calls {@link #initListeningPart()} function. */
     @Override
     public void show() {
         stage.clear();
@@ -92,6 +118,9 @@ public class MatchSounds implements Screen {
         Gdx.input.setInputProcessor(stage);
     }
 
+    /** Called when the screen should render itself.
+     *  Calls {@link #playSequence()},{@link #playAndCheckSequence()},{@link #displayText()}function.
+     *  Draws the stage. */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(1f,1f,1f,1);
@@ -105,7 +134,8 @@ public class MatchSounds implements Screen {
         stage.draw();
     }
 
-    private void displayText(){
+    /** Displays text. */
+    public void displayText(){
         app.batch.begin();
         app.font.draw(app.batch, text,stage.getWidth()/2f - text.width/2,playAgainButton.getY()/2+playAgainButton.getHeight()/2+stage.getHeight()/2+text.height/2);
         app.font.draw(app.batch,levelText,stage.getWidth()-livesLeftText.width-100,backButton.getY() + levelText.height + 15);
@@ -113,7 +143,8 @@ public class MatchSounds implements Screen {
         app.batch.end();
     }
 
-    private void initListeningPart(){
+    /** Initialize all buttons needed for the listening part and sets values of variables. */
+    public void initListeningPart(){
         text.setText(app.fontBlack,"Left times to play again: " + counter + ".");
         if(app.gamemode == GameClass.GAMEMODE.SURVIVAL){
             levelText.setText(app.fontBlack,"Level: " + survivalMode.currentLevel);
@@ -190,22 +221,25 @@ public class MatchSounds implements Screen {
         });
         stage.addActor(playAgainButton);
 
-        noteTex = app.assetManager.get("img/note.png", Texture.class);
+        Texture noteTex = app.assetManager.get("img/note.png", Texture.class);
         noteImg = new Image[correctSequence.size()];
         for(int i=0;i<noteImg.length;i++){
             noteImg[i] = new Image(noteTex);
             float tempX = stage.getWidth()/2f-(int)(correctSequence.size()/2f)*(noteTex.getWidth() + 100)+ i*(noteTex.getWidth()+ 100);
             if(correctSequence.size()%2 == 1) tempX -= noteTex.getWidth()/2f;
-            noteImg[i].setOrigin(noteTex.getWidth()/2f,noteTex.getHeight()/2f);
+            noteImg[i].setOrigin(noteTex.getWidth()/2f, noteTex.getHeight()/2f);
             noteImg[i].setPosition(tempX+300,stage.getHeight() + noteTex.getHeight()+200);
             noteImg[i].addAction(Actions.sequence(scaleTo(4f,4f),
-                    parallel(moveTo(tempX,playAgainButton.getY()/2-noteTex.getHeight()/2f,0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
+                    parallel(moveTo(tempX,playAgainButton.getY()/2- noteTex.getHeight()/2f,0.9f, Interpolation.bounce),scaleTo(1f,1f,0.5f))
             ));
             stage.addActor(noteImg[i]);
         }
     }
 
-    private void initMatchingPart(){
+    /** Initialize all buttons needed for the matching part and sets values of variables.
+     *  Sets as invisible no longer needed buttons.
+     *  Calls {@link #initTiles()} function. */
+    public void initMatchingPart(){
         state = GAMESTATE.MATCH;
 
         initTiles();
@@ -257,8 +291,8 @@ public class MatchSounds implements Screen {
         stage.addActor(checkButton);
     }
 
-    //Initialize both the black playable tiles and the white answer tiles
-    private void initTiles() {
+    /** Initialize all piano and answer tiles. */
+    public void initTiles() {
         //initialization of answer tiles (these at the bottom of the game screen)
         answerTiles = new AnswerTile[correctSequence.size()];
         int tempWidth = 180, tempHeight = 230;
@@ -272,6 +306,7 @@ public class MatchSounds implements Screen {
 
         //initialization of piano tiles (these at the top of the game screen)
         tiles = new PianoTile[pianoTilesToShow.size()];
+        //Temporary variables to adjust coordinates of the X position.
         tempWidth = 100;
         tempHeight = 170;
         for(int i = 0; i < tiles.length; i++){
@@ -329,7 +364,11 @@ public class MatchSounds implements Screen {
 
     }
 
-    private void checkAnswer(){
+    /** Sets as invisible no longer needed buttons.
+     *  Checks the answer and sets the text, sets specific buttons as visible dependable of the correctness of the answer,
+     *  and the number of remaining lives.
+     *  Calls {@link #initResultButtons()} function. */
+    public void checkAnswer(){
         //checks if answer is correct and saves result in variable
         boolean correct = true;
         for (int i = 0; i < answerTiles.length; i++) {
@@ -377,7 +416,8 @@ public class MatchSounds implements Screen {
         app.prefs.flush();
     }
 
-    private void initResultButtons(){
+    /** Initialize all buttons that could be shown at the end of a level and sets them as invisible. */
+    public void initResultButtons(){
         nextLevel = new TextButton("Next Level", app.skinSmall, "default");
         nextLevel.setSize(400,150);
         nextLevel.setPosition(stage.getWidth() - nextLevel.getWidth()-100,stage.getHeight()/2- nextLevel.getHeight()/2);
@@ -446,8 +486,9 @@ public class MatchSounds implements Screen {
         changeSettingsCustom.setVisible(false);
     }
 
-    //Plays the sequence in the listening part and the matching part depending on the game state
-    private void playSequence(){
+    /** The function is responsible for playing the sequence of sounds during the listening part
+     *  and for playing the music notes set on the answer tiles during the matching part. */
+    public void playSequence(){
         if(startPlaySequence){
             timer++;
             if(state == GAMESTATE.LISTEN){
@@ -475,7 +516,8 @@ public class MatchSounds implements Screen {
         }
     }
 
-    private void playAndCheckSequence(){
+    /** Checks the answer and colors the answer tile in green if the music note set on it correct and in red if the music note is wrong. */
+    public void playAndCheckSequence(){
         if(checkSequence){
             timer++;
             if(cnt < answerTiles.length && timer >= 35){

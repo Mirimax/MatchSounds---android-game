@@ -9,17 +9,25 @@ import com.mygdx.pianogame.GameClass;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 
+ /** Class is responsible for loading all assets to the game.
+ * It's the first screen after the app is run.
+ * When all assets are loaded it opens the menu screen.
+ * @author Paweł Platta */
 public class LoadingScreen implements Screen {
     private final GameClass app;
-    private GlyphLayout loadingText;
     private int timer;
     private int cnt;
-    StringBuilder text;
+    private StringBuilder text;
+    /** Represents the text displayed during loading the game. */
+    public GlyphLayout loadingText;
 
+    /** @param app Main instance of {@link com.badlogic.gdx.Game}. */
     public LoadingScreen(final GameClass app){
         this.app = app;
     }
 
+    /** Called when this screen becomes the current screen for a Game.
+     *Sets the default values for variables and calls {@link #loadingAssets()} function. */
     @Override
     public void show() {
         loadingAssets();
@@ -28,6 +36,8 @@ public class LoadingScreen implements Screen {
         cnt = 1;
     }
 
+    /**Called when the screen should render itself.
+     * Calls {@link #displayText()} function. */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(1f,1f,1f,1);
@@ -39,8 +49,8 @@ public class LoadingScreen implements Screen {
             app.setScreen(app.menu);
         }
     }
-
-    private void displayText(){
+    /** Displays text. */
+    public void displayText(){
         timer++;
         if(timer > 20){
             timer = 0;
@@ -56,8 +66,8 @@ public class LoadingScreen implements Screen {
         app.batch.end();
     }
 
-    //loading all assets at launch
-    private void loadingAssets(){
+    /** Loads all assets required in the game. */
+    public void loadingAssets(){
         for(int i = +0; i<88;i++) app.assetManager.load("sounds/singlenotes/"+ (i+1) + ".mp3", Sound.class);
         app.assetManager.load("img/background.png", Texture.class);
         app.assetManager.load("img/background2.png", Texture.class);

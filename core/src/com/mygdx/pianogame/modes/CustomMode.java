@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+/** Class that represents the custom game mode. It generates selects buttons by which is possible to adjust the difficulty of a level.
+ *  @author Paweł Platta */
 public class CustomMode implements Screen {
     private final GameClass app;
     private Stage stage;
@@ -27,13 +29,17 @@ public class CustomMode implements Screen {
     private ArrayList<Integer> pianoTilesToShow;
     private int listenAgainCnt;
 
-    private Slider numberOfTilesSlider;
-    private Slider numberOfAdditionalTilesSlider;
-    private Slider listenAgainSlider;
+    /** {@link Slider} of number of tiles in the answer. */
+    public Slider numberOfTilesSlider;
+    /** {@link Slider} of number of additional tiles not included in the answer. */
+    public Slider numberOfAdditionalTilesSlider;
+    /** {@link Slider} of number of times to listen again. */
+    public Slider listenAgainSlider;
     private GlyphLayout numberOfTilesText;
     private GlyphLayout numberOfAdditionalTilesText;
     private GlyphLayout listenAgainText;
 
+    /** @param app Main instance of {@link com.badlogic.gdx.Game}. */
     public CustomMode(final GameClass app){
        this.app = app;
        stage = new Stage(new FitViewport(Gdx.graphics.getWidth(),Gdx.graphics.getHeight()));
@@ -42,6 +48,8 @@ public class CustomMode implements Screen {
        pianoTilesToShow = new ArrayList<Integer>();
     }
 
+    /** Called when this screen becomes the current screen for a Game.
+     * Sets the default values for variables and calls {@link #initSelectBoxes()} and {@link #initButtons()} function. */
     @Override
     public void show() {
         stage.clear();
@@ -57,6 +65,8 @@ public class CustomMode implements Screen {
         Gdx.input.setInputProcessor(stage);
     }
 
+    /** Called when the screen should render itself.
+     *  Calls {@link #displayText()} function. */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(1f,1f,1f,1);
@@ -68,7 +78,8 @@ public class CustomMode implements Screen {
         stage.act();
     }
 
-    private void displayText(){
+    /** Displays text. */
+    public void displayText(){
         numberOfTilesText.setText(app.font,"Number of answer tiles: " + (int)numberOfTilesSlider.getValue());
         numberOfAdditionalTilesText.setText(app.font,"Number of additional tiles: " + (int)numberOfAdditionalTilesSlider.getValue());
         listenAgainText.setText(app.font,"Times to listen again: " + (int)listenAgainSlider.getValue());
@@ -79,7 +90,8 @@ public class CustomMode implements Screen {
         app.batch.end();
     }
 
-    private void initSelectBoxes(){
+    /** Initialize select boxes. */
+    public void initSelectBoxes(){
         numberOfTilesSlider = new Slider(1f,6f,1f,false,app.skinSmall);
         numberOfTilesSlider.setWidth(stage.getWidth()/3);
         numberOfTilesSlider.setPosition(stage.getWidth()/2 - numberOfTilesSlider.getWidth()/2,stage.getHeight()/5*4);
@@ -108,6 +120,7 @@ public class CustomMode implements Screen {
         listenAgainText = new GlyphLayout(app.font,"Times to listen again: ");
     }
 
+    /** Generate sequences according to the current state of select buttons. */
     public void generateSequence(){
         correctSequence.clear();
         pianoTilesToShow.clear();
@@ -121,7 +134,8 @@ public class CustomMode implements Screen {
         Collections.shuffle(pianoTilesToShow);
     }
 
-    private void initButtons(){
+    /** Initialize navigation buttons. */
+    public void initButtons(){
         TextButton backButton = new TextButton("back", app.skinSmall, "default");
         backButton.setSize(300,100);
         backButton.setPosition(50,stage.getHeight()-150);
@@ -157,14 +171,17 @@ public class CustomMode implements Screen {
         stage.addActor(startButton);
     }
 
+    /** Return a sequence that is not included in the answer. */
     public ArrayList<Integer> getPianoTilesToShow() {
         return pianoTilesToShow;
     }
 
+    /** Return a sequence that represents the answer. */
     public ArrayList<Integer> getCorrectSequence() {
         return correctSequence;
     }
 
+    /** Return the number of times a player can listen again to the sequence during the listening part. */
     public int getListenAgainCnt(){
         return listenAgainCnt;
     }
